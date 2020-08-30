@@ -1,12 +1,10 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import MovieSearch from './container/MovieSearch/MovieSearch'
 
 function App() {
   return (
-    <div className="App">
-      
-    </div>
+    <MovieSearch />
   );
 }
 
