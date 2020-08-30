@@ -1,11 +1,12 @@
 import React, { Component } from "react";
+import axios from "axios";
+
 import MovieCard from "../../component/MovieCard/MovieCard";
 import Search from "../../component/Search/Search";
-import axios from "axios";
 
 class MovieSearch extends Component {
     state = {
-        movieId: "tt1442449", // default imdb id (Spartacus)
+        movieId: "tt1442449",
         title: "",
         movie: {},
         searchResults: [],
@@ -15,34 +16,38 @@ class MovieSearch extends Component {
     componentDidMount() {
         this.loadMovie();
     }
+
     componentDidUpdate(prevProps, prevState) {
         if (prevState.movieId !== this.state.movieId) {
             this.loadMovie();
         }
     }
 
-    timeout = null;
-
     loadMovie() {
         axios
             .get(
-                `http://www.omdbapi.com/?i=tt3896198&apikey=8a34c550&i=${this.state.movieId}`
+                `http://www.omdbapi.com/?apikey=8a34c550&i=${this.state.movieId}`
             )
             .then(response => {
                 this.setState({ movie: response.data });
-                console.log(this.state.movie);
             })
             .catch(error => {
                 console.log("Opps!", error.message);
             });
     }
 
+    // we use a timeout to prevent the api request to fire immediately as we type
+    timeout = null;
+
     searchMovie = event => {
-        this.setState({ title: event.target.values, isSearching: false });
+        this.setState({ title: event.target.value, isSearching: true });
+
+        clearTimeout(this.timeout);
+
         this.timeout = setTimeout(() => {
             axios
                 .get(
-                    `http://www.omdbapi.com/?apikey=YOUR_API_KEY&s=${this.state.title}`
+                    `http://www.omdbapi.com/?apikey=8a34c550&s=${this.state.title}`
                 )
                 .then(response => {
                     if (response.data.Search) {
@@ -56,19 +61,27 @@ class MovieSearch extends Component {
         }, 1000);
     };
 
+    // event handler for a search result item that is clicked
     itemClicked = item => {
         this.setState({
             movieId: item.imdbID,
             isSearching: false,
-            title: item.title
+            title: item.Title
         });
     };
 
     render() {
         return (
-            <div>
-                <Search />
-                <MovieCard  movie={this.state.movie}/>
+            <div onClick={() => this.setState({ isSearching: false })}>
+                <Search
+                    defaultTitle={this.state.title}
+                    search={this.searchMovie}
+                    results={this.state.searchResults}
+                    clicked={this.itemClicked}
+                    searching={this.state.isSearching}
+                />
+
+                <MovieCard movie={this.state.movie} />
             </div>
         );
     }
